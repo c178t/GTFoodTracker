@@ -64,6 +64,8 @@ struct TrackerView: View {
     @State var negativeBalance: Bool = false
     @State var zeroSelectedDays: Bool = false
     @State var pressCalculateOnce:Bool = false
+    @State var maxMealPlanBalance:Bool = false
+    @State var enterIsPressed = false
     @FocusState private var balanceIsFocused: Bool
     
     
@@ -74,18 +76,50 @@ struct TrackerView: View {
     var body: some View {
         
         
-        NavigationStack {
+        
             VStack {
-                
-               
-                TextField("0", value: $balance, format: .number)
-                    .keyboardType(.numberPad)
-                    .multilineTextAlignment(.center)
-                    .font(.system(size: 100, design: .rounded))
-                    .fontWeight(.black)
-                    .padding(.top, 30)
-                    .padding(.bottom, 90)
-                    .focused($balanceIsFocused)
+                Spacer()
+                Spacer()
+                Spacer()
+                Spacer()
+                HStack {
+                    
+                    TextField("0", value: $balance, format: .number)
+                        .keyboardType(.numberPad)
+                        .multilineTextAlignment(.center)
+                        .font(.system(size: 100, design: .rounded))
+                        .fontWeight(.black)
+                        .padding(.top, 30)
+                        .padding(.bottom, 200)
+                        .focused($balanceIsFocused)
+                        .frame(width: 250, height: 100)
+                        
+                    
+                    if balanceIsFocused {
+                        Button {
+                           
+                            
+                            balanceIsFocused = false
+                            
+                            if balance > 200 {
+                                balance = 200
+                                maxMealPlanBalance = true
+                            }
+                            
+                        } label: {
+                            Image(systemName: "return")
+                                .font(.title)
+                                .imageScale(.large)
+                                
+                        }
+                        .padding(.bottom, 150)
+                        
+                    }
+
+                }
+                .alert("Maximum meal swipes that can be added is 200", isPresented: $maxMealPlanBalance) {
+                    Button("Ok"){}
+                }
                 
                 
                 Text("Pick the days you eat on campus")
@@ -105,8 +139,8 @@ struct TrackerView: View {
                     Spacer()
                     DayButton(dayNameShort: "S", is_selected: $saturdayBool)
                     Spacer()
-                       
-                        
+                    
+                    
                 }.padding(.bottom, 10.0)
                 
                 
@@ -119,15 +153,10 @@ struct TrackerView: View {
                     .pickerStyle(.segmented)
                 }
                 .fontDesign(.default)
-            
+                
                 
                 Button(action: {
-                    if (balance > 0) {
-                        balance -= 1
-                    } else {
-                        negativeBalance = true
-                    }
-                    
+
                     excludedDays = []
                     if !sundayBool {excludedDays.append(1) }
                     if !mondayBool {excludedDays.append(2) }
@@ -147,15 +176,21 @@ struct TrackerView: View {
                         
                     }
                     
+                    if (balance > 0 && !zeroSelectedDays) {
+                        balance -= 1
+                    } else if (balance <= 0 && !zeroSelectedDays){
+                        negativeBalance = true
+                    }
+                    
                 }, label: {
                     Text("Use One Now")
-                    .font(.title2)
-                    .foregroundColor(Color.white)
-                    .frame(width: 200, height: 50)
-                    .background(Color.blue)
-                    .cornerRadius(10)
-                    .padding(.top)
-                                    
+                        .font(.title2)
+                        .foregroundColor(Color.white)
+                        .frame(width: 200, height: 50)
+                        .background(Color.blue)
+                        .cornerRadius(10)
+                        .padding(.top)
+                    
                 }).alert("Balance cannot be less than 0", isPresented: $negativeBalance) {
                     Button("Ok") {}
                 }
@@ -182,10 +217,10 @@ struct TrackerView: View {
                         endDate = formattedDate(from: preDate)
                         
                     }
-
+                    
                 }
                 .buttonStyle(BorderedButtonStyle())
-                .font(/*@START_MENU_TOKEN@*/.title/*@END_MENU_TOKEN@*/)
+                .font(.title)
                 .alert("You have to select at least one day", isPresented: $zeroSelectedDays) {
                     Button("Ok"){}
                 }
@@ -206,14 +241,10 @@ struct TrackerView: View {
                 
             }
             .toolbar {
-                if balanceIsFocused {
-                    Button("Done") {
-                        balanceIsFocused = false
-                    }
-                }
-            }
 
-        }
+            }
+            
+        
         
     }
     
