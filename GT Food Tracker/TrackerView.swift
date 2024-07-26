@@ -39,7 +39,7 @@ struct DayButton: View {
 
 struct TrackerView: View {
     @State private var balanceString: String = ""
-    @State private var balance: Int = 0
+    @State private var balance: Int? = 0
     @State private var frequency: Int = 1
     @State private var days: Int = 0
     @State private var endDate: String = ""
@@ -125,6 +125,10 @@ struct TrackerView: View {
                                 .shadow(radius: 10, x: 0, y: 10)
                                 .onTapGesture {
                                     balancePadding = 200
+                                    
+                                    if balance == 0 {
+                                        balance = nil
+                                    }
                                 }
                                 
                                 
@@ -140,9 +144,13 @@ struct TrackerView: View {
                                     
                                     balanceIsFocused = false
                                     
-                                    if balance > 200 {
+                                    if balance ?? 0 > 200 {
                                         balance = 200
                                         maxMealPlanBalance = true
+                                    }
+                                    
+                                    if balance == nil {
+                                        balance = 0
                                     }
                                     
                                     
@@ -208,7 +216,7 @@ struct TrackerView: View {
                                 balancePadding = 30
                                 balanceIsFocused = false
                                 
-                                if balance > 200 {
+                                if balance ?? 0 > 200 {
                                     balance = 200
                                     maxMealPlanBalance = true
                                 }
@@ -226,7 +234,7 @@ struct TrackerView: View {
                                     zeroSelectedDays = true
                                 } else {
                                     pressCalculateOnce = true
-                                    preDate = calculateDate(excludedDays: excludedDays, balanceLeft: balance) ?? preDate
+                                    preDate = calculateDate(excludedDays: excludedDays, balanceLeft: balance ?? 0) ?? preDate
                                                                 
                                     endDate = formattedDate(from: preDate)
                                                                 
@@ -251,7 +259,7 @@ struct TrackerView: View {
                                 balancePadding = 30
                                 balanceIsFocused = false
                                 
-                                if balance > 200 {
+                                if balance ?? 0 > 200 {
                                     balance = 200
                                     maxMealPlanBalance = true
                                 }
@@ -269,15 +277,15 @@ struct TrackerView: View {
                                     zeroSelectedDays = true
                                 } else {
                                     pressCalculateOnce = true
-                                    preDate = calculateDate(excludedDays:                     excludedDays, balanceLeft: balance - 1) ?? preDate
+                                    preDate = calculateDate(excludedDays:                     excludedDays, balanceLeft: (balance ?? 0) - 1) ?? preDate
                                     
                                     endDate = formattedDate(from: preDate)
                                     
                                 }
                                 
-                                if (balance > 0 && !zeroSelectedDays) {
-                                    balance -= 1
-                                } else if (balance <= 0 && !zeroSelectedDays){
+                                if (balance ?? 0 > 0 && !zeroSelectedDays) {
+                                    balance! -= 1
+                                } else if (balance ?? 0 <= 0 && !zeroSelectedDays){
                                     negativeBalance = true
                                 }
                                 
@@ -438,7 +446,7 @@ struct TrackerView: View {
         
         let calendar = Calendar.current
         
-        var dateFormatter = DateFormatter()
+        let dateFormatter = DateFormatter()
         dateFormatter.dateStyle = .short
 
         while remainingBalance > 0 {
