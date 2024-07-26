@@ -24,7 +24,7 @@ struct DayButton: View {
         }
                
         )
-        .padding()
+        .padding(14)
         .background(is_selected ? Color("day_color_selected"):Color("day_color_unselected"))
         .clipShape(/*@START_MENU_TOKEN@*/Circle()/*@END_MENU_TOKEN@*/)
     }
@@ -44,6 +44,7 @@ struct TrackerView: View {
     @State private var days: Int = 0
     @State private var endDate: String = ""
     @State private var preDate: Date = Date()
+    @State private var balancePadding = 30
     
     @State private var excludedDays: [Int] = []
     
@@ -72,6 +73,7 @@ struct TrackerView: View {
     
     
     let frequencyAmount = [1, 2, 3]
+    let closedDays: [String] = ["11/23/24","11/24/24","11/25/24","12/15/24","12/16/24","12/17/24","12/18/24","12/19/24","12/20/24","12/21/24","12/22/24","12/23/24","12/24/24","12/25/24","12/26/24","12/27/24","12/28/24","12/29/24","12/30/24","12/31/24","1/1/25","1/2/25","1/3/25","1/4/25","3/17/25","3/18/25","3/19/25","3/20/25","3/21/25","3/22/25","3/23/25"] //update for this year!!!
     
 
     
@@ -108,23 +110,33 @@ struct TrackerView: View {
                         Spacer()
                         Spacer()
                         
-                        HStack {
+                        VStack {
+                            
                             
                             TextField("0", value: $balance, format: .number)
                                 .keyboardType(.numberPad)
                                 .multilineTextAlignment(.center)
                                 .font(.system(size: 100, design: .rounded))
                                 .fontWeight(.black)
-                                .padding(.top, 30)
+                                .padding(.top, CGFloat(balancePadding))
                                 .padding(.bottom, 200)
                                 .focused($balanceIsFocused)
                                 .frame(width: 250, height: 100)
                                 .shadow(radius: 10, x: 0, y: 10)
+                                .onTapGesture {
+                                    balancePadding = 200
+                                }
+                                
+                                
+                                
+                                
+
+                                
                             
                             
                             if balanceIsFocused {
                                 Button {
-                                    
+                                    balancePadding = 30
                                     
                                     balanceIsFocused = false
                                     
@@ -136,12 +148,16 @@ struct TrackerView: View {
                                     
                                     
                                 } label: {
-                                    Image(systemName: "return")
+//                                    Image(systemName: "return")
+//                                        .font(.title)
+//                                        .imageScale(.large)
+                                    
+                                    Text("Save")
                                         .font(.title)
-                                        .imageScale(.large)
+                                        
                                     
                                 }
-                                .padding(.bottom, 150)
+                                
                                 
                             }
                             
@@ -149,6 +165,7 @@ struct TrackerView: View {
                         .alert("Maximum meal swipes that can be added is 200", isPresented: $maxMealPlanBalance) {
                             Button("Ok"){}
                         }
+    
                         
                         VStack {
                             
@@ -184,8 +201,60 @@ struct TrackerView: View {
                             }
                             .fontDesign(.default)
                             
+                            Spacer()
+
+                            Button("Calculate") {
+                                
+                                balancePadding = 30
+                                balanceIsFocused = false
+                                
+                                if balance > 200 {
+                                    balance = 200
+                                    maxMealPlanBalance = true
+                                }
+                                                            
+                                excludedDays = []
+                                if !sundayBool {excludedDays.append(1) }
+                                if !mondayBool {excludedDays.append(2) }
+                                if !tuesdayBool {excludedDays.append(3) }
+                                if !wednesdayBool {excludedDays.append(4) }
+                                if !thursdayBool {excludedDays.append(5) }
+                                if !fridayBool {excludedDays.append(6) }
+                                if !saturdayBool {excludedDays.append(7) }
+                                                            
+                                if (excludedDays.count == 7) {
+                                    zeroSelectedDays = true
+                                } else {
+                                    pressCalculateOnce = true
+                                    preDate = calculateDate(excludedDays: excludedDays, balanceLeft: balance) ?? preDate
+                                                                
+                                    endDate = formattedDate(from: preDate)
+                                                                
+                                }
+                                                                    
+                            }
+                            .foregroundColor(.white)
+                            .frame(width: 200, height: 50)
+                            .background(.blue)
+                            .cornerRadius(10)
+                            .font(.title)
+                            .alert("You have to select at least one day", isPresented: $zeroSelectedDays) {
+                                Button("Ok"){}
+                            }
+
+                            Spacer()
+                            
+                            Text("Ate extra?")
                             
                             Button(action: {
+                                
+                                balancePadding = 30
+                                balanceIsFocused = false
+                                
+                                if balance > 200 {
+                                    balance = 200
+                                    maxMealPlanBalance = true
+                                }
                                 
                                 excludedDays = []
                                 if !sundayBool {excludedDays.append(1) }
@@ -200,7 +269,7 @@ struct TrackerView: View {
                                     zeroSelectedDays = true
                                 } else {
                                     pressCalculateOnce = true
-                                    preDate = calculateDate(excludedDays:                     excludedDays, balanceLeft: balance) ?? preDate
+                                    preDate = calculateDate(excludedDays:                     excludedDays, balanceLeft: balance - 1) ?? preDate
                                     
                                     endDate = formattedDate(from: preDate)
                                     
@@ -213,51 +282,20 @@ struct TrackerView: View {
                                 }
                                 
                             }, label: {
-                                Text("Use One Now")
+                                Text("Subtract and recalculate")
                                     .font(.title2)
-                                    .foregroundColor(Color.white)
-                                    .frame(width: 200, height: 50)
-                                    .background(Color.blue)
-                                    .cornerRadius(10)
-                                    .padding(.top)
+                                    
                                 
                             }).alert("Balance cannot be less than 0", isPresented: $negativeBalance) {
                                 Button("Ok") {}
                             }
-                            
-                            Spacer()
-                            
-                            Button("Calculate") {
-                                
-                                excludedDays = []
-                                if !sundayBool {excludedDays.append(1) }
-                                if !mondayBool {excludedDays.append(2) }
-                                if !tuesdayBool {excludedDays.append(3) }
-                                if !wednesdayBool {excludedDays.append(4) }
-                                if !thursdayBool {excludedDays.append(5) }
-                                if !fridayBool {excludedDays.append(6) }
-                                if !saturdayBool {excludedDays.append(7) }
-                                
-                                if (excludedDays.count == 7) {
-                                    zeroSelectedDays = true
-                                } else {
-                                    pressCalculateOnce = true
-                                    preDate = calculateDate(excludedDays:                     excludedDays, balanceLeft: balance) ?? preDate
-                                    
-                                    endDate = formattedDate(from: preDate)
-                                    
-                                }
-                                
-                            }
                             .buttonStyle(BorderedButtonStyle())
-                            .font(.title)
-                            .alert("You have to select at least one day", isPresented: $zeroSelectedDays) {
-                                Button("Ok"){}
-                            }
                             
                             
                             Spacer()
                             Spacer()
+                            
+                            
                             
 //                            Text("\(endDate)")
 //                                .font(.title)
@@ -269,6 +307,10 @@ struct TrackerView: View {
                         .padding(10)
                         .background(.ultraThinMaterial)
                         .clipShape(.rect(cornerRadius: 40))
+                        
+                        
+                        
+                        
                         
                         Spacer()
                         Spacer()
@@ -306,6 +348,30 @@ struct TrackerView: View {
                         
                     }
                     .toolbar {
+                        
+                        ToolbarItem(placement: .topBarLeading) {
+                            if (pressCalculateOnce) {
+                                Button("Clear") {
+                                    balance = 0
+                                    frequency = 1
+                                    sundayBool = false
+                                    mondayBool = false
+                                    tuesdayBool = false
+                                    wednesdayBool = false
+                                    thursdayBool = false
+                                    fridayBool = false
+                                    saturdayBool = false
+                                    pressCalculateOnce = false
+                                    endDate = ""
+                                    
+                                }
+                                .font(.title2)
+            
+                            }
+                        }
+                        
+                        
+                        
                         ToolbarItemGroup(placement: .topBarTrailing) {
                             
                             Button {
@@ -314,6 +380,7 @@ struct TrackerView: View {
                                 helpPresented = true
                             } label: {
                                 Image(systemName: "questionmark.circle")
+                                    .font(.title2)
                             }
                             .sheet(isPresented: $helpPresented, content: {
                                 
@@ -357,8 +424,10 @@ struct TrackerView: View {
                     }
 
                     
-                }
-            }
+                } //ZStack
+
+                
+            } //NavigationView
         
         
     }
@@ -369,14 +438,21 @@ struct TrackerView: View {
         
         let calendar = Calendar.current
         
+        var dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .short
+
         while remainingBalance > 0 {
             
             
             date = calendar.date(byAdding: .day, value: 1, to: date) ?? date
             
+            //print(dateFormatter.string(from: date))
+            
+            //print(!closedDays.contains(dateFormatter.string(from: date)))
+            
             let day = calendar.component(.weekday, from: date)
             
-            if !excludedDays.contains(day) {
+            if (!excludedDays.contains(day) && !closedDays.contains(dateFormatter.string(from: date))) {
                 remainingBalance -= frequency
             }
         }
@@ -390,6 +466,8 @@ struct TrackerView: View {
         dateFormatter.dateStyle = .full
         return dateFormatter.string(from: date)
     }
+    
+    
     
     
     
