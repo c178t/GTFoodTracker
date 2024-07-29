@@ -72,7 +72,7 @@ struct TrackerView: View {
     @FocusState private var balanceIsFocused: Bool
     
     
-    let frequencyAmount = [1, 2, 3]
+    let frequencyTypes = [1, 2, 3]
     let closedDays: [String] = ["11/23/24","11/24/24","11/25/24","12/15/24","12/16/24","12/17/24","12/18/24","12/19/24","12/20/24","12/21/24","12/22/24","12/23/24","12/24/24","12/25/24","12/26/24","12/27/24","12/28/24","12/29/24","12/30/24","12/31/24","1/1/25","1/2/25","1/3/25","1/4/25","3/17/25","3/18/25","3/19/25","3/20/25","3/21/25","3/22/25","3/23/25"] //update for this year!!!
     
 
@@ -110,7 +110,9 @@ struct TrackerView: View {
                         Spacer()
                         Spacer()
                         
+                        
                         VStack {
+                            
                             
                             
                             TextField("0", value: $balance, format: .number)
@@ -130,13 +132,23 @@ struct TrackerView: View {
                                         balance = nil
                                     }
                                 }
-                                
-                                
-                                
-                                
-
-                                
+    
+    
                             
+                            if balance == 0 {
+                                VStack {
+                                    Image(systemName: "arrow.up")
+                                        .font(.largeTitle)
+                                        
+
+                                    Text("Tap on balance to edit")
+                                        .bold()
+                                        .font(.title2)
+                                }
+                                .animation(.easeInOut(duration: 0.5), value: balance)
+                                    
+                            }
+                                                                                            
                             
                             if balanceIsFocused {
                                 Button {
@@ -180,7 +192,7 @@ struct TrackerView: View {
                             Text("Pick the days you eat on campus")
                             HStack {
                                 Spacer()
-                                DayButton(dayNameShort: "U", is_selected: $sundayBool)
+                                DayButton(dayNameShort: "S", is_selected: $sundayBool)
                                 Spacer()
                                 DayButton(dayNameShort: "M", is_selected: $mondayBool)
                                 Spacer()
@@ -201,7 +213,7 @@ struct TrackerView: View {
                             
                             Section("How many times a day?") {
                                 Picker("Frequency", selection: $frequency) {
-                                    ForEach(frequencyAmount, id: \.self) {
+                                    ForEach(frequencyTypes, id: \.self) {
                                         Text("\($0)x")
                                     }
                                 }
@@ -331,7 +343,7 @@ struct TrackerView: View {
                             .fontWeight(.regular)
                             .foregroundStyle(.white)
                             .bold()
-                        Text(pressCalculateOnce ? "Estimated date excluding today" : "")
+                        Text(pressCalculateOnce ? "Estimated date including today" : "")
                             .foregroundStyle(.white)
                         
                         Spacer()
@@ -355,11 +367,12 @@ struct TrackerView: View {
 //                        
                         
                     }
+                    .animation(.bouncy, value: balance)
                     .toolbar {
                         
                         ToolbarItem(placement: .topBarLeading) {
                             if (pressCalculateOnce) {
-                                Button("Clear") {
+                                Button("Reset") {
                                     balance = 0
                                     frequency = 1
                                     sundayBool = false
@@ -416,8 +429,10 @@ struct TrackerView: View {
                                         .padding()
                                     Spacer()
                                     
-                                    Text("The last step is to click the calculate button to predict the day your mealplan will end with the previous conditions applied. This estimate does not include whether you eat or ate in the current day. If you already ate or want to reflect some change to your swipe balance, just click the big Use One Now button to use up a swipe and update the estimate. The estimate will always exclude the current day.  ")
+                                    Text("The last step is to click the calculate button to predict the day your mealplan will end with the previous conditions applied. This estimate assumes you haven't ate today. If you already ate or want to reflect some change to your swipe balance, just click the Subtract and recalculate button to use up a swipe and update the estimate.  ")
                                         .padding()
+                                    
+                                    Spacer()
                                     
                                     
                                     
@@ -449,7 +464,7 @@ struct TrackerView: View {
         let dateFormatter = DateFormatter()
         dateFormatter.dateStyle = .short
 
-        while remainingBalance > 0 {
+        while remainingBalance - frequency > 0 {
             
             
             date = calendar.date(byAdding: .day, value: 1, to: date) ?? date
