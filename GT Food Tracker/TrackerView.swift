@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct DayButton: View {
     var dayNameShort: String
@@ -38,10 +39,10 @@ struct DayButton: View {
 
 
 struct TrackerView: View {
-    @State private var balanceString: String = ""
+    @Environment(\.modelContext) var modelContext
+    
     @State private var balance: Int? = 0
     @State private var frequency: Int = 1
-    @State private var days: Int = 0
     @State private var endDate: String = ""
     @State private var preDate: Date = Date()
     @State private var balancePadding = 30
@@ -60,7 +61,7 @@ struct TrackerView: View {
     
     
     
-    
+    // Only change after pressing something
     @State private var editBalance: Bool = false
     @State private var negativeBalance: Bool = false
     @State private var zeroSelectedDays: Bool = false
@@ -138,14 +139,16 @@ struct TrackerView: View {
                             if balance == 0 {
                                 VStack {
                                     Image(systemName: "arrow.up")
-                                        .font(.largeTitle)
-                                        
+                                        .font(.system(size: 40))
+                                        .bold()
+                                        .offset(y: -40)
 
                                     Text("Tap on balance to edit")
                                         .bold()
                                         .font(.title2)
                                 }
                                 .animation(.easeInOut(duration: 0.5), value: balance)
+                                
                                     
                             }
                                                                                             
@@ -168,9 +171,6 @@ struct TrackerView: View {
                                     
                                     
                                 } label: {
-//                                    Image(systemName: "return")
-//                                        .font(.title)
-//                                        .imageScale(.large)
                                     
                                     Text("Save")
                                         .font(.title)
@@ -242,7 +242,7 @@ struct TrackerView: View {
                                 if !fridayBool {excludedDays.append(6) }
                                 if !saturdayBool {excludedDays.append(7) }
                                                             
-                                if (excludedDays.count == 7) {
+                                if (excludedDays.count == 7) { //if no days selected
                                     zeroSelectedDays = true
                                 } else {
                                     pressCalculateOnce = true

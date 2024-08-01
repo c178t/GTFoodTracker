@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct GT_Food_TrackerApp: App {
@@ -13,5 +14,6 @@ struct GT_Food_TrackerApp: App {
         WindowGroup {
             TrackerView()
         }
+        .modelContainer(for: Account.self)
     }
 }
