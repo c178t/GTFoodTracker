@@ -40,15 +40,17 @@ struct DayButton: View {
 
 struct TrackerView: View {
     @Environment(\.modelContext) var modelContext
+    @Query var accounts: [Account]
+
     
     @State private var balance: Int? = 0
     @State private var frequency: Int = 1
     @State private var endDate: String = ""
-    @State private var preDate: Date = Date()
-    @State private var balancePadding = 30
-    
     @State private var excludedDays: [Int] = []
     
+    
+    @State private var preDate: Date = Date()
+    @State private var balancePadding = 30
     
     @State private var sundayBool: Bool = false
     @State private var mondayBool: Bool = false
@@ -57,6 +59,8 @@ struct TrackerView: View {
     @State private var thursdayBool: Bool = false
     @State private var fridayBool: Bool = false
     @State private var saturdayBool: Bool = false
+    
+    @State private var testBool: Bool = false
     
     
     
@@ -77,6 +81,54 @@ struct TrackerView: View {
     let closedDays: [String] = ["11/23/24","11/24/24","11/25/24","12/15/24","12/16/24","12/17/24","12/18/24","12/19/24","12/20/24","12/21/24","12/22/24","12/23/24","12/24/24","12/25/24","12/26/24","12/27/24","12/28/24","12/29/24","12/30/24","12/31/24","1/1/25","1/2/25","1/3/25","1/4/25","3/17/25","3/18/25","3/19/25","3/20/25","3/21/25","3/22/25","3/23/25"] //update for this year!!!
     
 
+    
+    fileprivate func calculate() {
+        balancePadding = 30
+        balanceIsFocused = false
+        
+        if balance ?? 0 > 200 {
+            balance = 200
+            maxMealPlanBalance = true
+        }
+        
+        excludedDays = []
+        if !sundayBool {excludedDays.append(1) }
+        if !mondayBool {excludedDays.append(2) }
+        if !tuesdayBool {excludedDays.append(3) }
+        if !wednesdayBool {excludedDays.append(4) }
+        if !thursdayBool {excludedDays.append(5) }
+        if !fridayBool {excludedDays.append(6) }
+        if !saturdayBool {excludedDays.append(7) }
+        
+        if (excludedDays.count == 7) { //if no days selected
+            zeroSelectedDays = true
+        } else {
+            pressCalculateOnce = true
+            preDate = calculateDate(excludedDays: excludedDays, balanceLeft: balance ?? 0) ?? preDate
+            
+            endDate = formattedDate(from: preDate)
+            
+        }
+    }
+    
+    fileprivate func saveData() {
+        if !accounts.isEmpty {
+            accounts.first!.balance = balance
+            accounts.first!.frequency = frequency
+            accounts.first!.endDate = endDate
+            accounts.first!.pressCalculateOnce = pressCalculateOnce
+            accounts.first!.excludedDays = excludedDays
+            accounts.first!.sundayBool = sundayBool
+            accounts.first!.mondayBool = mondayBool
+            accounts.first!.tuesdayBool = tuesdayBool
+            accounts.first!.wednesdayBool = wednesdayBool
+            accounts.first!.thursdayBool = thursdayBool
+            accounts.first!.fridayBool = fridayBool
+            accounts.first!.saturdayBool = saturdayBool
+            
+            try? modelContext.save()
+        }
+    }
     
     var body: some View {
         
@@ -225,32 +277,13 @@ struct TrackerView: View {
 
                             Button("Calculate") {
                                 
-                                balancePadding = 30
-                                balanceIsFocused = false
+                                calculate()
                                 
-                                if balance ?? 0 > 200 {
-                                    balance = 200
-                                    maxMealPlanBalance = true
-                                }
-                                                            
-                                excludedDays = []
-                                if !sundayBool {excludedDays.append(1) }
-                                if !mondayBool {excludedDays.append(2) }
-                                if !tuesdayBool {excludedDays.append(3) }
-                                if !wednesdayBool {excludedDays.append(4) }
-                                if !thursdayBool {excludedDays.append(5) }
-                                if !fridayBool {excludedDays.append(6) }
-                                if !saturdayBool {excludedDays.append(7) }
-                                                            
-                                if (excludedDays.count == 7) { //if no days selected
-                                    zeroSelectedDays = true
-                                } else {
-                                    pressCalculateOnce = true
-                                    preDate = calculateDate(excludedDays: excludedDays, balanceLeft: balance ?? 0) ?? preDate
-                                                                
-                                    endDate = formattedDate(from: preDate)
-                                                                
-                                }
+                                //need to update accounts.first
+                                saveData()
+                                
+                                
+                                
                                                                     
                             }
                             .foregroundColor(.white)
@@ -295,11 +328,17 @@ struct TrackerView: View {
                                     
                                 }
                                 
+//                                calculate()
+                                
                                 if (balance ?? 0 > 0 && !zeroSelectedDays) {
                                     balance! -= 1
                                 } else if (balance ?? 0 <= 0 && !zeroSelectedDays){
                                     negativeBalance = true
                                 }
+                                
+                                
+                                saveData()
+                                
                                 
                             }, label: {
                                 Text("Subtract and recalculate")
@@ -311,6 +350,35 @@ struct TrackerView: View {
                             }
                             .buttonStyle(BorderedButtonStyle())
                             
+//                            Button ("Test") {
+////                                for account in accounts {
+////                                    
+////                                    modelContext.delete(account)
+////                                    
+////                                    print(account.balance ?? 0)
+////                                    print(account.frequency)
+////                                    print(account.endDate)
+////                                }
+//                                
+//                                testBool = true
+//                                
+//                                //modelContext.delete(accounts.first!)
+//                                
+//                                print(accounts.first!.balance ?? 0)
+//                                print(accounts.first!.frequency)
+//                                print(accounts.first!.endDate)
+//                                print("deleted")
+//                                
+//                            }
+                            
+//                            if testBool {
+//                                VStack {
+//                                    Text("balance = \(accounts.first!.balance ?? 0)")
+//                                    Text("frequency = \(accounts.first!.frequency)")
+//                                    Text("endDate = \(accounts.first!.endDate)")
+//                                    Text("SundayBool = \(accounts.first!.sundayBool)")
+//                                }
+//                            }
                             
                             Spacer()
                             Spacer()
@@ -385,6 +453,8 @@ struct TrackerView: View {
                                     pressCalculateOnce = false
                                     endDate = ""
                                     
+                                    saveData()
+                                    
                                 }
                                 .font(.title2)
             
@@ -451,6 +521,30 @@ struct TrackerView: View {
 
                 
             } //NavigationView
+            .onAppear {
+                
+                if accounts.isEmpty {
+                    
+                    let newAccount = Account(balance: balance, frequency: frequency, endDate: endDate, pressCalculateOnce: pressCalculateOnce, excludedDays: excludedDays, sundayBool: sundayBool, mondayBool: mondayBool, tuesdayBool: tuesdayBool, wednesdayBool: wednesdayBool, thursdayBool: thursdayBool, fridayBool: fridayBool, saturdayBool: saturdayBool)
+                    
+                    modelContext.insert(newAccount)
+                } else { // updating variables from saved account
+                    
+                    balance = accounts.first!.balance
+                    frequency = accounts.first!.frequency
+                    endDate = accounts.first!.endDate
+                    pressCalculateOnce = accounts.first!.pressCalculateOnce
+                    excludedDays = accounts.first!.excludedDays
+                    sundayBool = accounts.first!.sundayBool
+                    mondayBool = accounts.first!.mondayBool
+                    tuesdayBool = accounts.first!.tuesdayBool
+                    wednesdayBool = accounts.first!.wednesdayBool
+                    thursdayBool = accounts.first!.thursdayBool
+                    fridayBool = accounts.first!.fridayBool
+                    saturdayBool = accounts.first!.saturdayBool
+                    
+                }
+            }
         
         
     }
